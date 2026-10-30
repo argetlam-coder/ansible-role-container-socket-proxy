@@ -13,6 +13,10 @@ After={{ service }}
 {% for service in container_socket_proxy_systemd_wanted_services_list %}
 Wants={{ service }}
 {% endfor %}
+{% if container_socket_proxy_host_socket_forwarding_enabled %}
+Requires={{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}
+After={{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}
+{% endif %}
 DefaultDependencies=no
 
 [Service]
@@ -30,7 +34,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --network={{ container_socket_proxy_container_network }} \
       --env-file={{ container_socket_proxy_base_path }}/env \
       --label-file={{ container_socket_proxy_base_path }}/labels \
-      --mount type=bind,src={{ container_socket_proxy_container_socket_path }},dst=/var/run/docker.sock,ro \
+      --mount type=bind,src={{ container_socket_proxy_host_socket_forwarding_socket_path if container_socket_proxy_host_socket_forwarding_enabled else container_socket_proxy_container_socket_path }},dst=/var/run/docker.sock,ro \
       --tmpfs=/var/lib/haproxy:rw,noexec,nosuid,size={{ container_socket_proxy_container_tmpfs_haproxy_size }} \
       --tmpfs=/run:rw,noexec,nosuid,size={{ container_socket_proxy_container_tmpfs_run_size }} \
       {% if container_socket_proxy_container_extra_arguments | length > 0 %}

@@ -23,3 +23,12 @@
   when: "lookup('vars', item, default='') | string | length == 0"
   with_items:
     - container_socket_proxy_gid
+
+- name: Fail if required container-socket-proxy host socket settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) when `container_socket_proxy_host_socket_forwarding_enabled` is enabled.
+  when: "container_socket_proxy_host_socket_forwarding_enabled | bool and lookup('vars', item, default='') | string | length == 0"
+  with_items:
+    - container_socket_proxy_host_socket_forwarding_socket_uid
+    - container_socket_proxy_host_socket_forwarding_socket_gid

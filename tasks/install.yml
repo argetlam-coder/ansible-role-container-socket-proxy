@@ -75,12 +75,42 @@
     mode: "0644"
   register: container_socket_proxy_systemd_service_result
 
+- name: Ensure container-socket-proxy host socket systemd units are present
+  when: container_socket_proxy_host_socket_forwarding_enabled | bool
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/systemd/{{ item.src }}"
+    dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ item.dest }}"
+    mode: "0644"
+  with_items:
+    - src: container-socket-proxy-host-socket.socket.j2
+      dest: "{{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}"
+    - src: container-socket-proxy-host-socket.service.j2
+      dest: "{{ container_socket_proxy_host_socket_forwarding_systemd_service_name }}"
+  register: container_socket_proxy_host_socket_systemd_units_result
+
+# The units are started along with the container-socket-proxy service, which requires the socket.
+# Stopping the socket stops that service too, so that it starts again with the changed socket.
+- name: Ensure container-socket-proxy host socket systemd units are stopped after changes
+  when: container_socket_proxy_host_socket_systemd_units_result.changed | default(false)
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+    daemon_reload: true
+  with_items:
+    - "{{ container_socket_proxy_host_socket_forwarding_systemd_service_name }}"
+    - "{{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}"
+
+- name: Ensure container-socket-proxy host socket systemd units do not exist
+  when: not container_socket_proxy_host_socket_forwarding_enabled | bool
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall_host_socket.yml"
+
 - name: Determine whether container-socket-proxy needs a restart
   ansible.builtin.set_fact:
     container_socket_proxy_restart_necessary: >-
       {{
         container_socket_proxy_support_files_result.changed | default(false)
         or container_socket_proxy_systemd_service_result.changed | default(false)
+        or container_socket_proxy_host_socket_systemd_units_result.changed | default(false)
         or container_socket_proxy_container_image_pull_result_ansible_module.changed | default(false)
         or container_socket_proxy_container_image_pull_result_command.changed | default(false)
       }}

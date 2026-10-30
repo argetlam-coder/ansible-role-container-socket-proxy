@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Mike Ballmann
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+
+- name: Check existence of container-socket-proxy host socket systemd socket
+  ansible.builtin.stat:
+    path: "{{ devture_systemd_docker_base_systemd_path }}/{{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}"
+  register: container_socket_proxy_host_socket_systemd_socket_stat
+
+- name: Uninstall container-socket-proxy host socket systemd units
+  when: container_socket_proxy_host_socket_systemd_socket_stat.stat.exists | bool
+  block:
+    - name: Ensure container-socket-proxy host socket systemd units are stopped
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: stopped
+        daemon_reload: true
+      with_items:
+        - "{{ container_socket_proxy_host_socket_forwarding_systemd_service_name }}"
+        - "{{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}"
+
+    - name: Ensure container-socket-proxy host socket systemd units do not exist
+      ansible.builtin.file:
+        path: "{{ devture_systemd_docker_base_systemd_path }}/{{ item }}"
+        state: absent
+      with_items:
+        - "{{ container_socket_proxy_host_socket_forwarding_systemd_service_name }}"
+        - "{{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}"
+
+    - name: Ensure systemd reloaded after container-socket-proxy host socket systemd units removal
+      ansible.builtin.systemd_service:
+        daemon_reload: true

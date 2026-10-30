@@ -5,6 +5,9 @@
 
 ---
 
+- name: Ensure container-socket-proxy host socket systemd units do not exist
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall_host_socket.yml"
+
 - name: Check existence of container-socket-proxy systemd service
   ansible.builtin.stat:
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ container_socket_proxy_identifier }}.service"

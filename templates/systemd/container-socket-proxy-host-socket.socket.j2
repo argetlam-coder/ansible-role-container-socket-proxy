@@ -1,0 +1,15 @@
+{#
+SPDX-FileCopyrightText: 2026 Mike Ballmann
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+#}
+
+[Unit]
+Description=Container Socket Proxy host socket ({{ container_socket_proxy_identifier }})
+
+[Socket]
+ListenStream={{ container_socket_proxy_host_socket_forwarding_socket_path }}
+SocketUser={{ container_socket_proxy_host_socket_forwarding_socket_uid }}
+SocketGroup={{ container_socket_proxy_host_socket_forwarding_socket_gid }}
+SocketMode={{ container_socket_proxy_host_socket_forwarding_socket_mode }}
+RemoveOnStop=true

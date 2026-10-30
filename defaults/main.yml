@@ -109,6 +109,25 @@ container_socket_proxy_container_cleanup_command: |
 # Specifies the container socket path on the host
 container_socket_proxy_container_socket_path: /var/run/docker.sock
 
+# Controls whether a separate socket (forwarding to `container_socket_proxy_container_socket_path` via `systemd-socket-proxyd`)
+# is created on the host and mounted into the container instead.
+# Its owner can differ from the container socket's, e.g. for Docker user namespace remapping (`userns-remap`),
+# where root in the container is an unprivileged user on the host.
+container_socket_proxy_host_socket_forwarding_enabled: false
+
+# The path of the separate socket on the host.
+container_socket_proxy_host_socket_forwarding_socket_path: "/run/{{ container_socket_proxy_identifier }}.sock"
+
+# The owner of the separate socket on the host.
+container_socket_proxy_host_socket_forwarding_socket_uid: ""
+container_socket_proxy_host_socket_forwarding_socket_gid: ""
+container_socket_proxy_host_socket_forwarding_socket_mode: "0600"
+
+container_socket_proxy_host_socket_forwarding_systemd_socket_name: "{{ container_socket_proxy_identifier }}-host-socket.socket"
+container_socket_proxy_host_socket_forwarding_systemd_service_name: "{{ container_socket_proxy_identifier }}-host-socket.service"
+
+container_socket_proxy_host_command_systemd_socket_proxyd: "/usr/lib/systemd/systemd-socket-proxyd"
+
 # Controls whether write access (POST) is enabled for all APIs.
 # By default, the enabled APIs are read-only.
 container_socket_proxy_write_access_enabled: false

@@ -1,0 +1,20 @@
+{#
+SPDX-FileCopyrightText: 2026 Mike Ballmann
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+#}
+
+[Unit]
+Description=Container Socket Proxy host socket forwarder ({{ container_socket_proxy_identifier }})
+Requires={{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}
+After={{ container_socket_proxy_host_socket_forwarding_systemd_socket_name }}
+{% for service in container_socket_proxy_systemd_required_services_list %}
+Requires={{ service }}
+After={{ service }}
+{% endfor %}
+
+[Service]
+ExecStart={{ container_socket_proxy_host_command_systemd_socket_proxyd }} {{ container_socket_proxy_container_socket_path }}
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateNetwork=true
